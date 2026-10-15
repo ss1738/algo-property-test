@@ -1,4 +1,4 @@
-import type { Account } from '@algorandfoundation/algorand-typescript'
+import type { Account, Asset } from '@algorandfoundation/algorand-typescript'
 import { TestExecutionContext } from '@algorandfoundation/algorand-typescript-testing'
 import fc from 'fast-check'
 
@@ -18,6 +18,15 @@ export interface Harness<TContract> {
   payment(who: number, amount: number, receiver?: Account): ReturnType<TestExecutionContext['any']['txn']['payment']>
   /** Amount of the most recent payment inner transaction the contract sent. */
   lastPaymentSent(): number
+  /** Create an asset to use in asset transfers. */
+  newAsset(decimals?: number): Asset
+  /**
+   * An asset transfer transaction from `accounts[who]`, to pass as an argument to a contract method.
+   * The receiver defaults to the contract's address.
+   */
+  assetTransfer(who: number, asset: Asset, amount: number, receiver?: Account): ReturnType<TestExecutionContext['any']['txn']['assetTransfer']>
+  /** The most recent asset transfer inner transaction the contract sent. */
+  lastAssetSent(): { asset: Asset; receiver: Account; amount: number }
 }
 
 export interface Command<TContract, TModel, TArgs = undefined> {
@@ -171,6 +180,18 @@ export function runPropertyTest<TContract, TModel = Record<string, never>>(optio
       appAddress: ctx.ledger.getApplicationForContract(contract as never).address,
       payment: (who, amount, receiver) =>
         ctx.any.txn.payment({ sender: accounts[who], receiver: receiver ?? ctx.ledger.getApplicationForContract(contract as never).address, amount }),
+      newAsset: (decimals = 0) => ctx.any.asset({ decimals }),
+      assetTransfer: (who, asset, amount, receiver) =>
+        ctx.any.txn.assetTransfer({
+          sender: accounts[who],
+          assetReceiver: receiver ?? ctx.ledger.getApplicationForContract(contract as never).address,
+          xferAsset: asset,
+          assetAmount: amount,
+        }),
+      lastAssetSent: () => {
+        const t = ctx.txn.lastGroup.lastItxnGroup().getAssetTransferInnerTxn()
+        return { asset: t.xferAsset, receiver: t.assetReceiver, amount: Number(t.assetAmount) }
+      },
       lastPaymentSent: () => Number(ctx.txn.lastGroup.lastItxnGroup().getPaymentInnerTxn().amount),
     }
     options.setup?.(harness)

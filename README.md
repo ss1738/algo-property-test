@@ -105,7 +105,9 @@ The full working version is in `examples/deposit-pool`, with the same contract f
 | `seed` | Fix it to reproduce a failure. |
 | `ctx` | Reuse your own `TestExecutionContext`. |
 
-The harness `h` gives you `h.contract`, `h.accounts`, `h.ctx`, `h.as(who, body)` to send a call from an account, `h.appAddress` for the contract's address, `h.payment(who, amount, receiver?)` to build a payment argument (it goes to the contract unless you pass a receiver), and `h.lastPaymentSent()` to read the last inner payment the contract made.
+The harness `h` gives you `h.contract`, `h.accounts`, `h.ctx`, `h.as(who, body)` to send a call from an account, `h.appAddress` for the contract's address, `h.payment(who, amount, receiver?)` to build a payment argument (it goes to the contract unless you pass a receiver), `h.lastPaymentSent()` to read the last inner payment the contract made, `h.newAsset()` to create an asset, `h.assetTransfer(who, asset, amount, receiver?)` to build an asset transfer argument, and `h.lastAssetSent()` to read the last inner asset transfer the contract made.
+
+To check that the contract rejects what it should, let the command succeed, compare with your model, and record the mismatch in the model. An invariant then reports it. `examples/asset-vault` and `tests/asset.algo.spec.ts` do this: a vault that checks its total instead of the caller's balance lets account 1 withdraw what account 0 deposited, and the shrunk failure is two steps.
 
 ## Things to know
 
