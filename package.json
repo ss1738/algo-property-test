@@ -4,6 +4,22 @@
   "description": "Property-based and stateful testing for Algorand TypeScript smart contracts",
   "license": "MIT",
   "author": "ss1738",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ss1738/algo-property-test.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ss1738/algo-property-test/issues"
+  },
+  "homepage": "https://github.com/ss1738/algo-property-test#readme",
+  "keywords": [
+    "algorand",
+    "smart-contracts",
+    "property-based-testing",
+    "fuzzing",
+    "testing",
+    "algorand-typescript"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
