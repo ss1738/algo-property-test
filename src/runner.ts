@@ -9,8 +9,13 @@ export interface Harness<TContract> {
   readonly accounts: readonly Account[]
   /** Run `body` as a call sent by `accounts[who]`. */
   as<T>(who: number, body: () => T): T
-  /** A payment transaction from `accounts[who]`, to pass as an argument to a contract method. */
-  payment(who: number, amount: number): ReturnType<TestExecutionContext['any']['txn']['payment']>
+  /** The contract's own address. */
+  readonly appAddress: Account
+  /**
+   * A payment transaction from `accounts[who]`, to pass as an argument to a contract method.
+   * The receiver defaults to the contract's address.
+   */
+  payment(who: number, amount: number, receiver?: Account): ReturnType<TestExecutionContext['any']['txn']['payment']>
   /** Amount of the most recent payment inner transaction the contract sent. */
   lastPaymentSent(): number
 }
@@ -158,12 +163,14 @@ export function runPropertyTest<TContract, TModel = Record<string, never>>(optio
       accounts,
       as: (who, body) => {
         let result!: ReturnType<typeof body>
-        ctx.txn.createScope([ctx.any.txn.applicationCall({ sender: accounts[who] })]).execute(() => {
+        ctx.txn.createScope([ctx.any.txn.applicationCall({ sender: accounts[who], appId: ctx.ledger.getApplicationForContract(contract as never) })]).execute(() => {
           result = body()
         })
         return result
       },
-      payment: (who, amount) => ctx.any.txn.payment({ sender: accounts[who], amount }),
+      appAddress: ctx.ledger.getApplicationForContract(contract as never).address,
+      payment: (who, amount, receiver) =>
+        ctx.any.txn.payment({ sender: accounts[who], receiver: receiver ?? ctx.ledger.getApplicationForContract(contract as never).address, amount }),
       lastPaymentSent: () => Number(ctx.txn.lastGroup.lastItxnGroup().getPaymentInnerTxn().amount),
     }
     options.setup?.(harness)

@@ -105,7 +105,7 @@ The full working version is in `examples/deposit-pool`, with the same contract f
 | `seed` | Fix it to reproduce a failure. |
 | `ctx` | Reuse your own `TestExecutionContext`. |
 
-The harness `h` gives you `h.contract`, `h.accounts`, `h.ctx`, `h.as(who, body)` to send a call from an account, `h.payment(who, amount)` to build a payment argument, and `h.lastPaymentSent()` to read the last inner payment the contract made.
+The harness `h` gives you `h.contract`, `h.accounts`, `h.ctx`, `h.as(who, body)` to send a call from an account, `h.appAddress` for the contract's address, `h.payment(who, amount, receiver?)` to build a payment argument (it goes to the contract unless you pass a receiver), and `h.lastPaymentSent()` to read the last inner payment the contract made.
 
 ## Things to know
 

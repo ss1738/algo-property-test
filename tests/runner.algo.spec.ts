@@ -1,3 +1,4 @@
+import { Global } from '@algorandfoundation/algorand-typescript'
 import { describe, expect, it } from 'vitest'
 import { DepositPool, DepositPoolFixed } from '../examples/deposit-pool/contract.algo.js'
 import { commands, invariants, newModel } from '../examples/deposit-pool/properties.js'
@@ -105,6 +106,27 @@ describe('rejected calls', () => {
             },
           },
         ],
+      }),
+    ).not.toThrow()
+  })
+
+  it('runs calls as the contract\'s own app, so payments to it and Global match', () => {
+    expect(() =>
+      runPropertyTest({
+        contract: DepositPool,
+        commands: [
+          {
+            name: 'inspect',
+            run: (h, who) => {
+              h.as(who, () => {
+                if (Global.currentApplicationAddress !== h.appAddress) throw new Error('wrong application address')
+              })
+              if (h.payment(who, 1).receiver !== h.appAddress) throw new Error('payment does not default to the app')
+            },
+          },
+        ],
+        invariants: [{ name: 'always true', check: () => true }],
+        runs: 5,
       }),
     ).not.toThrow()
   })
